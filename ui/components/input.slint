@@ -1,0 +1,115 @@
+// Floating input field anchored to the bottom of the window.
+// Width is set by the parent so it lines up with the body of the lists above.
+// Footer right side flips between the default Enter hint, an active search
+// indicator, and a transient status message (Rust sets `status-message`
+// and clears it after a delay).
+
+import { Theme } from "../theme.slint";
+
+export component FloatingInput inherits Rectangle {
+    in-out property <string> text;
+    in property <string> placeholder-text: "";
+    in property <string> hotkey-hint: "Ctrl+Shift+J";
+    in property <string> status-message: "";
+    in property <bool> search-active: false;
+    in property <string> search-query: "";
+
+    callback submitted(string);
+    callback dismissed();
+
+    background: Theme.background-primary;
+    border-color: Theme.border-secondary;
+    border-width: 0.5px;
+    border-radius: Theme.radius-lg;
+    width: 320px;
+    height: layout.preferred-height;
+
+    forward-focus: input;
+
+    public function focus-input() {
+        input.focus();
+    }
+
+    layout := VerticalLayout {
+        padding-left: 16px;
+        padding-right: 16px;
+        padding-top: 14px;
+        padding-bottom: 14px;
+        spacing: 10px;
+
+        Rectangle {
+            height: max(22px, input.preferred-height);
+
+            placeholder := Text {
+                visible: input.text == "";
+                text: root.placeholder-text;
+                color: Theme.text-tertiary;
+                font-size: Theme.font-size-body;
+                font-family: Theme.font-family;
+                vertical-alignment: center;
+                horizontal-alignment: left;
+                x: 0;
+                width: parent.width;
+                height: parent.height;
+            }
+
+            input := TextInput {
+                text <=> root.text;
+                color: Theme.text-primary;
+                font-size: Theme.font-size-body;
+                font-family: Theme.font-family;
+                // Multi-line mode so the TextInput inserts `\n` on Shift+Enter.
+                // Bare Enter is intercepted in `key-pressed` below to submit.
+                single-line: false;
+                wrap: word-wrap;
+                horizontal-alignment: left;
+                vertical-alignment: top;
+                width: parent.width;
+                height: parent.height;
+
+                key-pressed(event) => {
+                    if (event.text == Key.Escape) {
+                        root.dismissed();
+                        return accept;
+                    }
+                    if (event.text == Key.Return) {
+                        if (event.modifiers.shift) {
+                            // Shift+Enter → let TextInput insert a newline.
+                            return reject;
+                        }
+                        // Plain Enter → submit. The Rust handler decides
+                        // whether to clear the input (success) or keep it
+                        // (error, so the user can edit and retry).
+                        if (self.text != "") {
+                            root.submitted(self.text);
+                        }
+                        return accept;
+                    }
+                    return reject;
+                }
+            }
+        }
+
+        HorizontalLayout {
+            alignment: space-between;
+
+            Text {
+                text: root.hotkey-hint;
+                color: Theme.text-tertiary;
+                font-size: Theme.font-size-footer;
+                font-family: Theme.font-family;
+                letter-spacing: 0.3px;
+            }
+
+            Text {
+                // Priority: transient status > search-active hint > default Enter hint.
+                text: root.status-message != "" ? root.status-message : (root.search-active ? "検索中: " + root.search-query : "Enter で投げ込む");
+                color: Theme.text-tertiary;
+                font-size: Theme.font-size-footer;
+                font-family: Theme.font-family;
+                letter-spacing: 0.3px;
+                horizontal-alignment: right;
+            }
+        }
+    }
+}

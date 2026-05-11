@@ -1,0 +1,54 @@
+// Section container with an icon + label header and slotted body.
+// Caller is expected to wrap with `if condition: Section { ... }` for
+// conditional visibility — that way the parent layout's `spacing` doesn't
+// leave a gap for empty sections.
+
+import { Theme } from "../theme.slint";
+import { Icon } from "icon.slint";
+
+// No `inherits Rectangle` — Section is a layout container, not a styled box.
+// Dropping the inheritance avoids accidentally exposing Rectangle's
+// background/border/color knobs to callers.
+export component Section {
+    in property <string> label-text;
+    in property <string> icon-commands;
+
+    VerticalLayout {
+        spacing: 0;
+        alignment: start;
+
+        // Header: icon + uppercase-ish label.
+        HorizontalLayout {
+            spacing: 7px;
+            alignment: start;
+            height: 16px;
+
+            Icon {
+                commands: root.icon-commands;
+                tint: Theme.text-tertiary;
+                size: 13px;
+            }
+
+            Text {
+                text: root.label-text;
+                color: Theme.text-tertiary;
+                font-size: Theme.font-size-label;
+                font-family: Theme.font-family;
+                letter-spacing: 0.8px;
+                vertical-alignment: center;
+            }
+        }
+
+        // Gap between the section header and its body content.
+        Rectangle {
+            height: Theme.section-label-gap;
+        }
+
+        // Body slot — caller-supplied children land here.
+        VerticalLayout {
+            spacing: 0;
+            alignment: start;
+            @children
+        }
+    }
+}

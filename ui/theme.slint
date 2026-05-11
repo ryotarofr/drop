@@ -1,0 +1,46 @@
+// Design tokens for Drop. Colors, typography, and spacing are gathered here
+// so the rest of the UI can stay declarative.
+// `dark` is bound to the OS color scheme via `Palette.color-scheme`.
+
+import { Palette } from "std-widgets.slint";
+
+export global Theme {
+    // Whether the current scheme is dark. Bound to OS preference.
+    out property <bool> dark: Palette.color-scheme == ColorScheme.dark;
+
+    // --- Backgrounds ---
+    // The three slots are intentionally collapsed to a single tone today.
+    // Set them to distinct values if a layered look is wanted again.
+    out property <color> background-primary: dark ? #262624 : #ffffff;
+    out property <color> background-secondary: background-primary;
+    out property <color> background-tertiary: background-primary;
+
+    // --- Text ---
+    out property <color> text-primary: dark ? #e8e6df : #2d2c2a;
+    out property <color> text-secondary: dark ? #b4b2a9 : #5f5e5a;
+    out property <color> text-tertiary: dark ? #6d6c66 : #a8a69e;
+
+    // --- Borders ---
+    out property <color> border-tertiary: dark ? #e8e6df1a : #2d2c2a1a;
+    out property <color> border-secondary: dark ? #e8e6df33 : #2d2c2a33;
+
+    // --- Geometry ---
+    out property <length> radius-lg: 12px;
+
+    // --- Typography ---
+    out property <string> font-family: "Segoe UI";
+    out property <length> font-size-body: 15px;
+    out property <length> font-size-label: 11px;
+    out property <length> font-size-brand: 14px;
+    out property <length> font-size-time: 12px;
+    out property <length> font-size-footer: 11px;
+    out property <length> font-size-icon: 16px;
+
+    // --- Spacing ---
+    out property <length> section-gap: 36px;
+    out property <length> section-label-gap: 14px;
+    out property <length> row-padding-y: 7px;
+    // Extra height under each 今日中 row, giving the section a bit more
+    // breathing room than the すべて list.
+    out property <length> today-row-bottom-spacing: 12px;
+}

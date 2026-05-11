@@ -1,0 +1,189 @@
+// Main window for Drop.
+
+import { Theme } from "theme.slint";
+import { Icon, Icons } from "components/icon.slint";
+import { Section } from "components/section.slint";
+import { EntryRow } from "components/entry-row.slint";
+import { BodyRow } from "components/body-row.slint";
+import { FloatingInput } from "components/input.slint";
+
+// One row of the `すべて` list, surfaced to Rust.
+export struct EntryView {
+    id-text: string,    // e.g. "#5" — shown only in dev mode
+    time-text: string,
+    body-text: string,
+}
+
+// One row of the `今日中` list (no time stamp).
+export struct TodayView {
+    id-text: string,
+    body-text: string,
+}
+
+export component MainWindow inherits Window {
+    title: "Drop";
+    background: Theme.background-tertiary;
+    min-width: 680px;
+    min-height: 700px;
+    preferred-width: 680px;
+    preferred-height: 720px;
+
+    forward-focus: input-area;
+
+    // --- State surfaced to Rust ---
+    in property <[TodayView]> today-entries;
+    in property <[EntryView]> all-entries;
+
+    in property <string> resurface-text;
+    in property <string> resurface-elapsed;
+    in property <string> resurface-id-text;     // e.g. "#42" for the resurfaced entry
+
+    in-out property <string> input-text;
+    in property <string> hotkey-hint: "Ctrl+Shift+J";
+
+    /// Dev mode reveals #ID columns and shows a header badge.
+    in property <bool> dev-mode: false;
+
+    /// True while a `/search <query>` filter is active.
+    in property <bool> search-active: false;
+    in property <string> search-query: "";
+
+    /// Transient footer message (errors etc.). Empty = show default hint.
+    in property <string> status-message: "";
+
+    // --- Callbacks Rust will hook into ---
+    callback submit(string);
+    callback dismiss();
+
+    public function focus-input() {
+        input-area.focus-input();
+    }
+
+    Rectangle {
+        width: 680px;
+        height: parent.height;
+        x: (parent.width - self.width) / 2;
+        background: Theme.background-secondary;
+        border-radius: Theme.radius-lg;
+
+        Rectangle {
+            x: 20px;
+            y: 20px;
+            width: parent.width - 40px;
+            height: parent.height - 40px;
+            background: Theme.background-primary;
+
+            // Header.
+            Rectangle {
+                x: 32px;
+                y: 28px;
+                width: parent.width - 64px;
+                height: 22px;
+
+                // Brand cluster.
+                Icon {
+                    x: 0;
+                    y: (parent.height - self.height) / 2;
+                    commands: Icons.droplet;
+                    tint: Theme.text-secondary;
+                    size: 18px;
+                }
+
+                Text {
+                    x: 26px;
+                    y: 0;
+                    height: parent.height;
+                    text: "Drop";
+                    color: Theme.text-primary;
+                    font-size: Theme.font-size-brand;
+                    font-family: Theme.font-family;
+                    font-weight: 500;
+                    letter-spacing: 0.4px;
+                    vertical-alignment: center;
+                }
+
+                // dev badge (only in dev mode).
+                Text {
+                    visible: root.dev-mode;
+                    x: 66px;     // sits just after "Drop"
+                    y: 0;
+                    height: parent.height;
+                    text: "dev";
+                    color: Theme.text-tertiary;
+                    font-size: Theme.font-size-footer;
+                    font-family: Theme.font-family;
+                    letter-spacing: 0.6px;
+                    vertical-alignment: center;
+                }
+            }
+
+            // Body sections.
+            VerticalLayout {
+                x: 32px;
+                y: 86px;
+                width: parent.width - 64px;
+                spacing: Theme.section-gap;
+                alignment: start;
+
+                // 今日中 / 過去から are hidden while a search filter is active.
+                if !root.search-active && today-entries.length > 0: Section {
+                    label-text: "今日中";
+                    icon-commands: Icons.clock;
+
+                    for item in today-entries: BodyRow {
+                        body-text: item.body-text;
+                        id-text: item.id-text;
+                        show-id: root.dev-mode;
+                        bottom-spacing: Theme.today-row-bottom-spacing;
+                    }
+                }
+
+                if !root.search-active && resurface-text != "": Section {
+                    label-text: "過去から · " + resurface-elapsed;
+                    icon-commands: Icons.arrow-back-up;
+
+                    BodyRow {
+                        body-text: resurface-text;
+                        id-text: resurface-id-text;
+                        show-id: root.dev-mode;
+                    }
+                }
+
+                // The すべて section is always shown when a search is active
+                // (even with 0 results, so the empty state is visible).
+                if root.search-active || all-entries.length > 0: Section {
+                    label-text: root.search-active ? "検索中: " + root.search-query : "すべて";
+                    icon-commands: Icons.list;
+
+                    for entry in all-entries: EntryRow {
+                        width: parent.width;
+                        show-id: root.dev-mode;
+                        id-text: entry.id-text;
+                        time-text: entry.time-text;
+                        body-text: entry.body-text;
+                    }
+                }
+            }
+
+            // Width matches the full row span (time + body) of すべて section
+            // — i.e. the same left/right margins as the section's VerticalLayout.
+            input-area := FloatingInput {
+                x: 32px;
+                y: parent.height - self.height - 24px;
+                width: parent.width - 64px;
+                text <=> root.input-text;
+                placeholder-text: "思いついたことを投げ込む…";
+                hotkey-hint: root.hotkey-hint;
+                status-message: root.status-message;
+                search-active: root.search-active;
+                search-query: root.search-query;
+                submitted(value) => {
+                    root.submit(value);
+                }
+                dismissed => {
+                    root.dismiss();
+                }
+            }
+        }
+    }
+}

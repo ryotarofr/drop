@@ -1,0 +1,53 @@
+// One line in the すべて section: optional #ID + timestamp + text.
+// `id-text` is pre-formatted in Rust (e.g. "#5"). The ID column only renders
+// when `show-id` is true (dev mode).
+
+import { Theme } from "../theme.slint";
+
+export component EntryRow inherits Rectangle {
+    in property <string> time-text;
+    in property <string> body-text;
+    in property <string> id-text;
+    in property <bool> show-id: false;
+
+    height: row.preferred-height;
+
+    row := HorizontalLayout {
+        padding-top: Theme.row-padding-y;
+        padding-bottom: Theme.row-padding-y;
+        spacing: 14px;
+
+        if show-id: Text {
+            text: root.id-text;
+            color: Theme.text-tertiary;
+            font-size: Theme.font-size-time;
+            font-family: Theme.font-family;
+            width: 36px;
+            horizontal-stretch: 0;
+            vertical-alignment: top;
+            horizontal-alignment: left;
+        }
+
+        Text {
+            text: root.time-text;
+            color: Theme.text-tertiary;
+            font-size: Theme.font-size-time;
+            font-family: Theme.font-family;
+            width: 40px;
+            horizontal-stretch: 0;
+            vertical-alignment: top;
+            horizontal-alignment: left;
+        }
+
+        Text {
+            text: root.body-text;
+            color: Theme.text-primary;
+            font-size: Theme.font-size-body;
+            font-family: Theme.font-family;
+            wrap: word-wrap;
+            horizontal-stretch: 1;
+            horizontal-alignment: left;
+            vertical-alignment: top;
+        }
+    }
+}

@@ -1,0 +1,40 @@
+// Lightweight SVG-path based icon. Paths are authored against a 24x24
+// viewbox (Tabler Icons style); set `commands`, `tint`, and `size`.
+
+import { Theme } from "../theme.slint";
+
+export component Icon inherits Rectangle {
+    in property <string> commands;
+    // Named `tint` rather than `color`: Rectangle's `color` property is a
+    // deprecated alias and overriding it errors out.
+    in property <brush> tint: Theme.text-secondary;
+    in property <length> size: Theme.font-size-icon;
+
+    width: size;
+    height: size;
+
+    Path {
+        width: parent.width;
+        height: parent.height;
+        viewbox-width: 24;
+        viewbox-height: 24;
+        commands: root.commands;
+        stroke: root.tint;
+        stroke-width: 1.6px;
+        fill: transparent;
+    }
+}
+
+// Tabler icon paths (outlined). Keep here so the rest of the UI stays clean.
+export global Icons {
+    out property <string> droplet:
+        "M7.502 19.423c2.602 2.105 6.395 2.105 8.996 0c2.602 -2.105 3.262 -5.708 1.566 -8.546l-4.89 -7.26c-.42 -.625 -1.287 -.803 -1.936 -.397a1.376 1.376 0 0 0 -.41 .397l-4.893 7.26c-1.695 2.838 -1.035 6.441 1.567 8.546z";
+    out property <string> search:
+        "M10 17a7 7 0 1 0 0 -14a7 7 0 0 0 0 14z M21 21l-6 -6";
+    out property <string> clock:
+        "M12 21a9 9 0 1 0 0 -18a9 9 0 0 0 0 18z M12 7v5l3 3";
+    out property <string> arrow-back-up:
+        "M9 14l-4 -4l4 -4 M5 10h11a4 4 0 1 1 0 8h-1";
+    out property <string> list:
+        "M9 6h11 M9 12h11 M9 18h11 M5 6h.01 M5 12h.01 M5 18h.01";
+}

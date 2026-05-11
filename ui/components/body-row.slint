@@ -1,0 +1,40 @@
+// A simpler row used for 今日中 and 過去から: optional #ID column + body text.
+// `bottom-spacing` adds extra height under the row, used by 今日中 to give
+// those entries a bit more breathing room.
+
+import { Theme } from "../theme.slint";
+
+export component BodyRow {
+    in property <string> body-text;
+    in property <string> id-text;
+    in property <bool> show-id: false;
+    in property <length> bottom-spacing: 0px;
+
+    height: row.preferred-height + bottom-spacing;
+
+    row := HorizontalLayout {
+        spacing: 10px;
+
+        if show-id: Text {
+            text: root.id-text;
+            color: Theme.text-tertiary;
+            font-size: Theme.font-size-body;
+            font-family: Theme.font-family;
+            width: 36px;
+            horizontal-stretch: 0;
+            vertical-alignment: top;
+            horizontal-alignment: left;
+        }
+
+        Text {
+            text: root.body-text;
+            color: Theme.text-primary;
+            font-size: Theme.font-size-body;
+            font-family: Theme.font-family;
+            wrap: word-wrap;
+            horizontal-stretch: 1;
+            horizontal-alignment: left;
+            vertical-alignment: top;
+        }
+    }
+}

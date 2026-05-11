@@ -1,0 +1,10 @@
+// Static droplet glyph. Reserved for the post-submit "drop falls into the
+// list" animation, which is not yet wired up.
+
+import { Theme } from "../theme.slint";
+import { Icon, Icons } from "icon.slint";
+
+export component Droplet inherits Icon {
+    commands: Icons.droplet;
+    tint: Theme.text-secondary;
+}
